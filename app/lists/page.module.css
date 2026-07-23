@@ -1,0 +1,92 @@
+.main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 640px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.cardName {
+  font-weight: 600;
+}
+
+.cardMeta {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
+
+.shareIcon {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.error {
+  color: #e5484d;
+  font-size: 0.875rem;
+}
+
+.createForm {
+  display: flex;
+  gap: 8px;
+}
+
+.createForm input {
+  flex: 1;
+  font-size: 1rem;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+.createForm button {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #171717;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.createForm button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  .createForm button {
+    background: #ededed;
+    color: #0a0a0a;
+  }
+}

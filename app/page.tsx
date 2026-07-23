@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { requireUser } from '@/server/lib/requireUser';
 import { can } from '@/server/domain/permission/permissionService';
 import * as airconService from '@/server/domain/aircon/airconService';
 import * as sensorService from '@/server/domain/sensor/sensorService';
+import * as listService from '@/server/domain/list/listService';
 import AirconSummaryCard from './components/AirconSummaryCard';
 import SensorSummaryCard from './components/SensorSummaryCard';
 import LogoutButton from './components/LogoutButton';
@@ -30,6 +32,18 @@ export default async function DashboardPage() {
   } catch {
     sensorLoadError = true;
   }
+
+  let lists: Awaited<ReturnType<typeof listService.listListsForUser>> = [];
+  let listLoadError = false;
+
+  try {
+    lists = await listService.listListsForUser(user);
+  } catch {
+    listLoadError = true;
+  }
+
+  const incompleteCount = lists.reduce((sum, l) => sum + (l.itemCount - l.completedCount), 0);
+  const recentLists = lists.slice(0, 3);
 
   return (
     <main className={styles.main}>
@@ -80,6 +94,27 @@ export default async function DashboardPage() {
               />
             ))}
           </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className={styles.sectionTitle}>リスト</h2>
+        {listLoadError && <p className={styles.error}>リスト情報の取得に失敗しました。</p>}
+        {!listLoadError && lists.length === 0 && <p>まだリストがありません。</p>}
+        {!listLoadError && lists.length > 0 && (
+          <>
+            <p>未完了の項目: {incompleteCount}件</p>
+            <div className={styles.grid}>
+              {recentLists.map((list) => (
+                <Link key={list.id} href={`/lists/${list.id}`} className={styles.listLink}>
+                  {list.name}（{list.itemCount - list.completedCount}件）
+                </Link>
+              ))}
+            </div>
+            <Link href="/lists" className={styles.listLink}>
+              すべてのリストを見る
+            </Link>
+          </>
         )}
       </section>
     </main>

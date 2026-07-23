@@ -33,3 +33,9 @@
   color: #e5484d;
   font-size: 0.875rem;
 }
+
+.listLink {
+  font-size: 0.875rem;
+  text-decoration: underline;
+  display: block;
+}
