@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 注: SQLiteはネイティブのenum型を持たず、Prismaはenum値をTEXTカラムとして
+// 保存し、DB制約ではなくPrisma Client側でのみ値を検証する。
+
+enum Role {
+  ADMIN
+  FAMILY
+  GUEST
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+}
+
+enum DeviceKind {
+  AIRCON
+  METER
+}
+
+enum AirconMode {
+  AUTO
+  COOL
+  DRY
+  FAN
+  HEAT
+}
+
+enum FanSpeedLevel {
+  AUTO
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AuditAction {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  LOGOUT
+  AIRCON_POWER
+  AIRCON_SET
+  LIST_CREATE
+  LIST_RENAME
+  LIST_DELETE
+  LIST_ITEM_CREATE
+  LIST_ITEM_UPDATE
+  LIST_ITEM_TOGGLE
+  LIST_ITEM_DELETE
+  LIST_SHARE_ADD
+  LIST_SHARE_UPDATE
+  LIST_SHARE_REMOVE
+  USER_CREATE
+  USER_UPDATE
+  USER_ROLE_CHANGE
+  USER_DELETE
+  WEBAUTHN_REGISTER
+  WEBAUTHN_REMOVE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  displayName  String
+  role         Role     @default(FAMILY)
+  createdById  String?
+  createdBy    User?    @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers User[]   @relation("UserCreatedBy")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions            Session[]
+  webauthnCredentials WebAuthnCredential[]
+  ownedLists          List[]              @relation("ListOwner")
+  listShares          ListShare[]
+  listItemsCreated    ListItem[]          @relation("ListItemCreatedBy")
+  listItemsCompleted  ListItem[]          @relation("ListItemCompletedBy")
+  airconStateUpdates  AirconState[]
+  auditLogs           AuditLog[]
+
+  @@index([role])
+}
+
+model Session {
+  id         String    @id @default(cuid()) // JWTの"sid"claimと一致
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  userAgent  String?
+  ipAddress  String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      Int       @default(0)
+  transports   String?
+  deviceName   String
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
+}
+
+model SwitchBotDevice {
+  id                 String     @id @default(cuid())
+  deviceId           String     @unique
+  deviceName         String
+  deviceType         String
+  kind               DeviceKind
+  hubDeviceId        String?
+  enableCloudService Boolean    @default(true)
+  lastSyncedAt       DateTime   @default(now())
+  lastFetchAt        DateTime?
+  lastFetchOk        Boolean?
+  lastFetchError     String?
+
+  sensorReadings SensorReading[]
+  airconState    AirconState?
+
+  @@index([kind])
+}
+
+model SensorReading {
+  id          String          @id @default(cuid())
+  deviceId    String
+  device      SwitchBotDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  temperature Float
+  humidity    Float
+  fetchedAt   DateTime        @default(now())
+
+  @@index([deviceId, fetchedAt])
+}
+
+model AirconState {
+  deviceId        String          @id
+  device          SwitchBotDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  power           Boolean         @default(false)
+  temperature     Int             @default(26)
+  mode            AirconMode      @default(AUTO)
+  fanSpeed        FanSpeedLevel   @default(AUTO)
+  updatedAt       DateTime        @updatedAt
+  updatedByUserId String?
+  updatedByUser   User?           @relation(fields: [updatedByUserId], references: [id])
+}
+
+model List {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation("ListOwner", fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items  ListItem[]
+  shares ListShare[]
+
+  @@index([ownerId])
+}
+
+model ListItem {
+  id            String    @id @default(cuid())
+  listId        String
+  list          List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  title         String
+  note          String?
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  completedById String?
+  completedBy   User?     @relation("ListItemCompletedBy", fields: [completedById], references: [id])
+  sortOrder     Int       @default(0)
+  createdById   String
+  createdBy     User      @relation("ListItemCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([listId, sortOrder])
+}
+
+model ListShare {
+  id         String          @id @default(cuid())
+  listId     String
+  list       List            @relation(fields: [listId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission SharePermission @default(VIEW)
+  sharedAt   DateTime        @default(now())
+
+  @@unique([listId, userId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  user       User?       @relation(fields: [userId], references: [id])
+  action     AuditAction
+  targetType String?
+  targetId   String?
+  detail     String? // JSON文字列
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
