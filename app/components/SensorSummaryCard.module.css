@@ -1,0 +1,54 @@
+.card {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #ffffff;
+}
+
+.values {
+  display: flex;
+  gap: 16px;
+}
+
+.value {
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.unit {
+  font-size: 0.875rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.meta {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.link {
+  font-size: 0.8125rem;
+  text-decoration: underline;
+}
