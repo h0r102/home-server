@@ -1,9 +1,9 @@
-import { prisma } from './prisma';
+import { userRepository } from '@/server/repositories/userRepository';
 import { hashPassword } from './password';
 import { logger } from './logger';
 
 export async function ensureInitialAdmin(): Promise<void> {
-  const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+  const adminCount = await userRepository.countByRole('ADMIN');
   if (adminCount > 0) return;
 
   const username = process.env.INITIAL_ADMIN_USERNAME;
@@ -16,13 +16,11 @@ export async function ensureInitialAdmin(): Promise<void> {
   }
 
   const passwordHash = await hashPassword(password);
-  await prisma.user.create({
-    data: {
-      username,
-      passwordHash,
-      displayName: username,
-      role: 'ADMIN',
-    },
+  await userRepository.create({
+    username,
+    passwordHash,
+    displayName: username,
+    role: 'ADMIN',
   });
   logger.info({ username }, 'bootstrap_admin_created');
 }
