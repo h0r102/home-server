@@ -68,6 +68,15 @@ git pull
 docker compose up -d --build
 ```
 
+## テスト
+
+```bash
+npm test        # ドメイン層の単体/統合テスト(Vitest、権限マトリクス・last-admin保護・共有権限・認証セッション等)
+npm run test:e2e  # E2E(Playwright): ログイン→エアコン操作→リスト作成/項目追加→ログアウトのゴールデンパス
+```
+
+`npm test` は `data/test.db` に対して実際にマイグレーションを適用し、実DBを使って検証する（モックはSwitchBot Cloud APIのみ、`SWITCHBOT_MOCK=true`で自動的に有効化される）。`npm run test:e2e` は `data/e2e.db` を使って実際に開発サーバーを起動し、ブラウザ操作を自動化して検証する。
+
 ## 制約・既知の注意点
 
 - 「その他(Others)」タイプのSwitchBotリモコンはSwitchBot APIがボタン名一覧を公開しないため、初期リリースでは対応していない（エアコン・温湿度センサーのみ対応）

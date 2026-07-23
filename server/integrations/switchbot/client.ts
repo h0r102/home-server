@@ -77,7 +77,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return json.body;
 }
 
+const MOCK_ENABLED = process.env.SWITCHBOT_MOCK === 'true';
+
+const MOCK_DEVICES: SwitchBotDevicesResponse = {
+  deviceList: [{ deviceId: 'mock-meter-1', deviceName: 'モックセンサー', deviceType: 'Meter' }],
+  infraredRemoteList: [
+    { deviceId: 'mock-ac-1', deviceName: 'モックエアコン', remoteType: 'Air Conditioner', hubDeviceId: 'mock-hub' },
+  ],
+};
+
 export function getDevices(): Promise<SwitchBotDevicesResponse> {
+  if (MOCK_ENABLED) return Promise.resolve(MOCK_DEVICES);
   return request<SwitchBotDevicesResponse>('/devices', { method: 'GET' });
 }
 
@@ -87,6 +97,7 @@ export async function sendCommand(
   parameter: string = 'default',
   commandType: 'command' | 'customize' = 'command'
 ): Promise<void> {
+  if (MOCK_ENABLED) return;
   await request(`/devices/${deviceId}/commands`, {
     method: 'POST',
     body: JSON.stringify({ command, parameter, commandType }),
@@ -94,5 +105,6 @@ export async function sendCommand(
 }
 
 export function getDeviceStatus<T>(deviceId: string): Promise<T> {
+  if (MOCK_ENABLED) return Promise.resolve({ temperature: 25, humidity: 50 } as unknown as T);
   return request<T>(`/devices/${deviceId}/status`, { method: 'GET' });
 }

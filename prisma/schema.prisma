@@ -158,7 +158,7 @@ model AirconState {
   fanSpeed        FanSpeedLevel   @default(AUTO)
   updatedAt       DateTime        @updatedAt
   updatedByUserId String?
-  updatedByUser   User?           @relation(fields: [updatedByUserId], references: [id])
+  updatedByUser   User?           @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
 }
 
 model List {
@@ -184,7 +184,7 @@ model ListItem {
   completed     Boolean   @default(false)
   completedAt   DateTime?
   completedById String?
-  completedBy   User?     @relation("ListItemCompletedBy", fields: [completedById], references: [id])
+  completedBy   User?     @relation("ListItemCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
   sortOrder     Int       @default(0)
   createdById   String
   createdBy     User      @relation("ListItemCreatedBy", fields: [createdById], references: [id])
@@ -210,7 +210,7 @@ model ListShare {
 model AuditLog {
   id         String      @id @default(cuid())
   userId     String?
-  user       User?       @relation(fields: [userId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   action     AuditAction
   targetType String?
   targetId   String?

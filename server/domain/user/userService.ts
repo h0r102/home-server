@@ -137,8 +137,8 @@ export async function deleteUser(actingUser: AuthUser, targetUserId: string): Pr
 
   await assertNotLastAdmin(targetUserId);
 
-  await userRepository.delete(targetUserId);
-
+  // 監査ログの記録は削除前に行う。自分自身を削除するケースでは、削除後に
+  // 記録しようとするとAuditLog.userIdが指す行が既に無く外部キー制約違反になるため。
   await auditLogService.record({
     userId: actingUser.id,
     action: 'USER_DELETE',
@@ -146,4 +146,6 @@ export async function deleteUser(actingUser: AuthUser, targetUserId: string): Pr
     targetId: targetUserId,
     detail: { username: target.username },
   });
+
+  await userRepository.delete(targetUserId);
 }
