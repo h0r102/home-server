@@ -2,6 +2,8 @@
 
 import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { useWebAuthnSupported } from '@/app/lib/useWebAuthnSupported';
 import styles from './page.module.css';
 
 function LoginForm() {
@@ -11,6 +13,13 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const webauthnSupported = useWebAuthnSupported();
+
+  function goToRedirectTarget() {
+    const redirectTo = searchParams.get('redirect') || '/';
+    router.push(redirectTo);
+    router.refresh();
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,11 +36,41 @@ function LoginForm() {
         setError(body?.error?.message ?? 'ログインに失敗しました');
         return;
       }
-      const redirectTo = searchParams.get('redirect') || '/';
-      router.push(redirectTo);
-      router.refresh();
+      goToRedirectTarget();
     } catch {
       setError('通信エラーが発生しました');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handlePasskeyLogin() {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const optionsResponse = await fetch('/api/auth/webauthn/authentication-options', { method: 'POST' });
+      const optionsBody = await optionsResponse.json();
+      if (!optionsResponse.ok) {
+        setError(optionsBody?.error?.message ?? 'パスキー認証を開始できませんでした');
+        return;
+      }
+
+      const assertion = await startAuthentication({ optionsJSON: optionsBody.options });
+
+      const verifyResponse = await fetch('/api/auth/webauthn/authentication-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowId: optionsBody.flowId, response: assertion }),
+      });
+      if (!verifyResponse.ok) {
+        const body = await verifyResponse.json().catch(() => null);
+        setError(body?.error?.message ?? 'パスキー認証に失敗しました');
+        return;
+      }
+      goToRedirectTarget();
+    } catch (e) {
+      if (e instanceof Error && e.name === 'NotAllowedError') return;
+      setError('パスキー認証に失敗しました');
     } finally {
       setSubmitting(false);
     }
@@ -70,6 +109,11 @@ function LoginForm() {
         <button type="submit" className={styles.submit} disabled={submitting}>
           {submitting ? 'ログイン中…' : 'ログイン'}
         </button>
+        {webauthnSupported && (
+          <button type="button" className={styles.secondary} onClick={handlePasskeyLogin} disabled={submitting}>
+            Face IDでログイン
+          </button>
+        )}
       </form>
     </div>
   );

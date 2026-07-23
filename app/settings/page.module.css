@@ -1,0 +1,87 @@
+.main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 420px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9375rem;
+}
+
+.profileRow {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  padding: 8px 0;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.credentialRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+}
+
+.credentialMeta {
+  font-size: 0.8125rem;
+  opacity: 0.65;
+}
+
+.removeButton {
+  font-size: 0.8125rem;
+  color: #e5484d;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.registerButton {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #171717;
+  color: #ffffff;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.registerButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  .registerButton {
+    background: #ededed;
+    color: #0a0a0a;
+  }
+}
+
+.notice {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+}
+
+.error {
+  color: #e5484d;
+  font-size: 0.875rem;
+}

@@ -1,14 +1,29 @@
 import type { User } from '@prisma/client';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+} from '@simplewebauthn/server';
 import { userRepository } from '@/server/repositories/userRepository';
 import { sessionRepository } from '@/server/repositories/sessionRepository';
+import { webauthnCredentialRepository } from '@/server/repositories/webauthnCredentialRepository';
 import { verifyPassword } from '@/server/lib/password';
 import { signSessionToken, verifySessionToken } from '@/server/lib/jwt';
-import { UnauthorizedError } from '@/server/lib/errors';
+import { UnauthorizedError, ValidationError, NotFoundError } from '@/server/lib/errors';
 import {
   SESSION_TTL_DAYS,
   SESSION_RENEWAL_THRESHOLD_DAYS,
   SESSION_TOUCH_MIN_INTERVAL_MS,
 } from '@/server/lib/constants';
+import { getRpId, getRpName, getOrigin } from '@/server/lib/webauthnConfig';
+import * as challengeStore from '@/server/lib/webauthnChallengeStore';
 import * as auditLogService from '@/server/domain/auditLog/auditLogService';
 import type { AuthUser } from '@/server/domain/shared/types';
 
@@ -123,4 +138,149 @@ export async function verifySession(token: string): Promise<VerifySessionResult>
   }
 
   return { user: authUser, sessionId: session.id };
+}
+
+export async function getWebAuthnRegistrationOptions(userId: string): Promise<PublicKeyCredentialCreationOptionsJSON> {
+  const user = await userRepository.findById(userId);
+  if (!user) throw new UnauthorizedError('ユーザーが見つかりません');
+
+  const existingCredentials = await webauthnCredentialRepository.listByUserId(userId);
+
+  const options = await generateRegistrationOptions({
+    rpName: getRpName(),
+    rpID: getRpId(),
+    userName: user.username,
+    userDisplayName: user.displayName,
+    userID: new TextEncoder().encode(user.id),
+    attestationType: 'none',
+    excludeCredentials: existingCredentials.map((c) => ({
+      id: c.credentialId,
+      transports: c.transports ? JSON.parse(c.transports) : undefined,
+    })),
+    authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
+  });
+
+  challengeStore.setRegistrationChallenge(userId, options.challenge);
+  return options;
+}
+
+export async function verifyWebAuthnRegistration(
+  userId: string,
+  response: RegistrationResponseJSON,
+  deviceName: string
+): Promise<void> {
+  const expectedChallenge = challengeStore.takeRegistrationChallenge(userId);
+  if (!expectedChallenge) {
+    throw new ValidationError('登録セッションの有効期限が切れました。もう一度お試しください');
+  }
+
+  const verification = await verifyRegistrationResponse({
+    response,
+    expectedChallenge,
+    expectedOrigin: getOrigin(),
+    expectedRPID: getRpId(),
+  });
+
+  if (!verification.verified || !verification.registrationInfo) {
+    throw new ValidationError('パスキーの登録を検証できませんでした');
+  }
+
+  const { credential } = verification.registrationInfo;
+  await webauthnCredentialRepository.create({
+    userId,
+    credentialId: credential.id,
+    publicKey: credential.publicKey,
+    counter: credential.counter,
+    transports: credential.transports ? JSON.stringify(credential.transports) : undefined,
+    deviceName,
+  });
+
+  await auditLogService.record({
+    userId,
+    action: 'WEBAUTHN_REGISTER',
+    targetType: 'WebAuthnCredential',
+    detail: { deviceName },
+  });
+}
+
+export async function getWebAuthnAuthenticationOptions(): Promise<{
+  options: PublicKeyCredentialRequestOptionsJSON;
+  flowId: string;
+}> {
+  const options = await generateAuthenticationOptions({
+    rpID: getRpId(),
+    userVerification: 'preferred',
+  });
+
+  const flowId = crypto.randomUUID();
+  challengeStore.setAuthenticationChallenge(flowId, options.challenge);
+  return { options, flowId };
+}
+
+export async function verifyWebAuthnAuthentication(
+  flowId: string,
+  response: AuthenticationResponseJSON,
+  meta: { userAgent?: string; ip?: string }
+): Promise<LoginResult> {
+  const expectedChallenge = challengeStore.takeAuthenticationChallenge(flowId);
+  if (!expectedChallenge) {
+    throw new UnauthorizedError('認証セッションの有効期限が切れました。もう一度お試しください');
+  }
+
+  const stored = await webauthnCredentialRepository.findByCredentialId(response.id);
+  if (!stored) {
+    throw new UnauthorizedError('登録されていないパスキーです');
+  }
+
+  const verification = await verifyAuthenticationResponse({
+    response,
+    expectedChallenge,
+    expectedOrigin: getOrigin(),
+    expectedRPID: getRpId(),
+    credential: {
+      id: stored.credentialId,
+      publicKey: stored.publicKey,
+      counter: stored.counter,
+      transports: stored.transports ? JSON.parse(stored.transports) : undefined,
+    },
+  });
+
+  if (!verification.verified) {
+    throw new UnauthorizedError('パスキー認証に失敗しました');
+  }
+
+  await webauthnCredentialRepository.updateCounter(stored.id, verification.authenticationInfo.newCounter);
+
+  const expiresAt = addDays(new Date(), SESSION_TTL_DAYS);
+  const session = await sessionRepository.create({
+    userId: stored.userId,
+    expiresAt,
+    userAgent: meta.userAgent,
+    ipAddress: meta.ip,
+  });
+  const token = signSessionToken(stored.userId, session.id, expiresAt);
+
+  await auditLogService.record({
+    userId: stored.userId,
+    action: 'LOGIN_SUCCESS',
+    ipAddress: meta.ip,
+    detail: { method: 'webauthn' },
+  });
+
+  return { user: toPublicUser(stored.user), token, expiresAt };
+}
+
+export async function removeWebAuthnCredential(userId: string, credentialId: string): Promise<void> {
+  const credential = await webauthnCredentialRepository.findById(credentialId);
+  if (!credential || credential.userId !== userId) {
+    throw new NotFoundError('パスキーが見つかりません');
+  }
+
+  await webauthnCredentialRepository.delete(credentialId);
+  await auditLogService.record({
+    userId,
+    action: 'WEBAUTHN_REMOVE',
+    targetType: 'WebAuthnCredential',
+    targetId: credentialId,
+  });
 }

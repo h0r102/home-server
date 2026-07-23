@@ -49,6 +49,11 @@ export default async function DashboardPage() {
     <main className={styles.main}>
       <div className={styles.header}>
         <h1 className={styles.title}>ホームポータル</h1>
+        <nav className={styles.nav}>
+          <Link href="/aircon">エアコン</Link>
+          <Link href="/lists">リスト</Link>
+          <Link href="/settings">設定</Link>
+        </nav>
         <LogoutButton />
       </div>
 
