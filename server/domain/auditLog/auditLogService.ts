@@ -1,6 +1,8 @@
 import type { AuditAction, Prisma } from '@prisma/client';
 import { auditLogRepository, type AuditLogFilter } from '@/server/repositories/auditLogRepository';
+import { assertCan } from '@/server/domain/permission/permissionService';
 import { logger } from '@/server/lib/logger';
+import type { AuthUser } from '@/server/domain/shared/types';
 
 export interface AuditLogEntryInput {
   userId: string | null;
@@ -9,6 +11,17 @@ export interface AuditLogEntryInput {
   targetId?: string;
   detail?: Record<string, unknown>;
   ipAddress?: string;
+}
+
+export interface AuditLogDto {
+  id: string;
+  action: AuditAction;
+  user: { id: string; displayName: string } | null;
+  targetType: string | null;
+  targetId: string | null;
+  detail: Record<string, unknown> | null;
+  ipAddress: string | null;
+  createdAt: Date;
 }
 
 type PrismaTransactionClient = Prisma.TransactionClient;
@@ -34,6 +47,24 @@ export async function record(entry: AuditLogEntryInput, tx?: PrismaTransactionCl
   }
 }
 
-export function query(filter: AuditLogFilter) {
-  return auditLogRepository.query(filter);
+export async function query(
+  actingUser: AuthUser,
+  filter: AuditLogFilter
+): Promise<{ items: AuditLogDto[]; nextCursor: string | null }> {
+  assertCan(actingUser, 'auditlog.view');
+
+  const { items, nextCursor } = await auditLogRepository.query(filter);
+  return {
+    items: items.map((log) => ({
+      id: log.id,
+      action: log.action,
+      user: log.user ? { id: log.user.id, displayName: log.user.displayName } : null,
+      targetType: log.targetType,
+      targetId: log.targetId,
+      detail: log.detail ? JSON.parse(log.detail) : null,
+      ipAddress: log.ipAddress,
+      createdAt: log.createdAt,
+    })),
+    nextCursor,
+  };
 }

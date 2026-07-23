@@ -1,4 +1,4 @@
-import type { AuditAction, AuditLog, Prisma } from '@prisma/client';
+import type { AuditAction, AuditLog, Prisma, User } from '@prisma/client';
 import { prisma } from '@/server/lib/prisma';
 
 export interface AuditLogFilter {
@@ -9,6 +9,8 @@ export interface AuditLogFilter {
   cursor?: string;
   limit?: number;
 }
+
+export type AuditLogWithUser = AuditLog & { user: User | null };
 
 type PrismaTransactionClient = Prisma.TransactionClient;
 
@@ -28,7 +30,7 @@ export const auditLogRepository = {
     return client.auditLog.create({ data });
   },
 
-  async query(filter: AuditLogFilter): Promise<{ items: AuditLog[]; nextCursor: string | null }> {
+  async query(filter: AuditLogFilter): Promise<{ items: AuditLogWithUser[]; nextCursor: string | null }> {
     const limit = filter.limit ?? 50;
     const where: Prisma.AuditLogWhereInput = {
       userId: filter.userId,

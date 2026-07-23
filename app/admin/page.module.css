@@ -1,0 +1,161 @@
+.main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tabs button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.tabActive {
+  background: #171717;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tabActive {
+    background: #ededed;
+    color: #0a0a0a;
+  }
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  font-size: 0.875rem;
+}
+
+.rowHeader {
+  font-weight: 600;
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.col {
+  flex: 1;
+  min-width: 0;
+}
+
+.colNarrow {
+  width: 90px;
+  flex: none;
+}
+
+.colWide {
+  flex: 2;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.form input,
+.form select {
+  font-size: 0.9375rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+.form button {
+  align-self: flex-start;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #171717;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form button {
+    background: #ededed;
+    color: #0a0a0a;
+  }
+}
+
+.linkButton {
+  font-size: 0.8125rem;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  color: inherit;
+}
+
+.dangerButton {
+  color: #e5484d;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  color: #e5484d;
+  font-size: 0.875rem;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters select,
+.filters input {
+  font-size: 0.8125rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+.detail {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

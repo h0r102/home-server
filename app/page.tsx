@@ -12,6 +12,7 @@ import styles from './page.module.css';
 export default async function DashboardPage() {
   const user = await requireUser('/');
   const canOperateAircon = can(user, 'aircon.operate');
+  const canManageUsers = can(user, 'user.manage');
 
   let devices: Awaited<ReturnType<typeof airconService.listDevices>> = [];
   let states: Awaited<ReturnType<typeof airconService.getState>>[] = [];
@@ -53,6 +54,7 @@ export default async function DashboardPage() {
           <Link href="/aircon">エアコン</Link>
           <Link href="/lists">リスト</Link>
           <Link href="/settings">設定</Link>
+          {canManageUsers && <Link href="/admin">管理</Link>}
         </nav>
         <LogoutButton />
       </div>
