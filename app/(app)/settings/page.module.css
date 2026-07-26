@@ -22,7 +22,7 @@
 .profileRow {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: 8px 0;
 }
 
@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .credentialMeta {
@@ -46,7 +46,7 @@
 
 .removeButton {
   font-size: 0.8125rem;
-  color: #e5484d;
+  color: var(--color-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -56,10 +56,10 @@
   font-size: 0.9375rem;
   font-weight: 600;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: #171717;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
   cursor: pointer;
   align-self: flex-start;
 }
@@ -69,19 +69,12 @@
   cursor: default;
 }
 
-@media (prefers-color-scheme: dark) {
-  .registerButton {
-    background: #ededed;
-    color: #0a0a0a;
-  }
-}
-
 .notice {
   font-size: 0.8125rem;
   opacity: 0.7;
 }
 
 .error {
-  color: #e5484d;
+  color: var(--color-danger);
   font-size: 0.875rem;
 }

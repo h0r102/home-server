@@ -1,0 +1,45 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.legend {
+  display: flex;
+  gap: var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+}
+
+.gridline {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.axisLabel {
+  fill: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.xAxisLine {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}

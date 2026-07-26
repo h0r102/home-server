@@ -12,6 +12,11 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-5);
 }
 
 .title {
@@ -35,14 +40,19 @@
 .field input {
   font-size: 1rem;
   padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
 }
 
+.field input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
 .error {
-  color: #e5484d;
+  color: var(--color-danger);
   font-size: 0.875rem;
   text-align: center;
 }
@@ -51,11 +61,16 @@
   font-size: 1rem;
   font-weight: 600;
   padding: 12px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: #171717;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
 }
 
 .submit:disabled {
@@ -63,19 +78,12 @@
   cursor: default;
 }
 
-@media (prefers-color-scheme: dark) {
-  .submit {
-    background: #ededed;
-    color: #0a0a0a;
-  }
-}
-
 .secondary {
   font-size: 1rem;
   font-weight: 600;
   padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
   cursor: pointer;

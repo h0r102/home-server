@@ -20,6 +20,10 @@ test.describe('ゴールデンパス: ログイン → エアコン操作 → �
     await page.getByRole('button', { name: '適用' }).click();
     await expect(page.getByText('最終操作:')).toContainText('admin');
 
+    // 2.5. ヘッダーのブランドリンクからホームへ戻れることを確認
+    await page.getByRole('link', { name: 'ホームポータル' }).click();
+    await page.waitForURL('/');
+
     // 3. リスト作成・項目追加・完了切替
     await page.goto('/lists');
     await page.getByPlaceholder('新しいリスト名').fill('E2Eテストリスト');
@@ -37,8 +41,7 @@ test.describe('ゴールデンパス: ログイン → エアコン操作 → �
     await checkbox.click();
     await expect(checkbox).toBeChecked();
 
-    // 4. ログアウト（ログアウトボタンはダッシュボードにのみ表示される）
-    await page.goto('/');
+    // 4. ログアウト（ヘッダーが共通化されたため、リスト詳細ページなどダッシュボード以外からも操作できる）
     await page.getByRole('button', { name: 'ログアウト' }).click();
     await page.waitForURL('/login');
   });

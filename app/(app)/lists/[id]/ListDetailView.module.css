@@ -32,23 +32,23 @@
 .iconButton {
   font-size: 0.8125rem;
   padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 
 .dangerButton {
-  border-color: #e5484d;
-  color: #e5484d;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .notice {
   font-size: 0.8125rem;
   opacity: 0.7;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
 }
 
@@ -63,7 +63,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 10px 4px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .itemChecked .itemTitle {
@@ -87,7 +87,7 @@
 
 .itemDeleteButton {
   font-size: 0.75rem;
-  color: #e5484d;
+  color: var(--color-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -102,8 +102,8 @@
   flex: 1;
   font-size: 1rem;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
 }
@@ -112,22 +112,15 @@
   font-size: 0.9375rem;
   font-weight: 600;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: #171717;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
   cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
-  .addItemForm button {
-    background: #ededed;
-    color: #0a0a0a;
-  }
-}
-
 .sharePanel {
-  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  border-top: 1px solid var(--color-border-subtle);
   padding-top: 16px;
   display: flex;
   flex-direction: column;
@@ -150,7 +143,7 @@
   font-size: 0.875rem;
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
 }
@@ -165,8 +158,8 @@
   flex: 1;
   font-size: 0.875rem;
   padding: 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
 }
@@ -174,22 +167,15 @@
 .addShareForm button {
   font-size: 0.875rem;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: #171717;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
   cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
-  .addShareForm button {
-    background: #ededed;
-    color: #0a0a0a;
-  }
-}
-
 .error {
-  color: #e5484d;
+  color: var(--color-danger);
   font-size: 0.875rem;
 }
 

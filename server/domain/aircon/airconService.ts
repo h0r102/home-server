@@ -59,10 +59,20 @@ function validateTemperature(temperature: number): void {
   }
 }
 
+const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
 export async function listDevices(actingUser: AuthUser): Promise<AirconDeviceDto[]> {
   assertCan(actingUser, 'aircon.view');
-  await syncDevices();
-  const devices = await switchbotDeviceRepository.findByKind('AIRCON');
+  let devices = await switchbotDeviceRepository.findByKind('AIRCON');
+  const newestSyncedAt = devices.reduce<number>(
+    (max, d) => Math.max(max, d.lastSyncedAt.getTime()),
+    0
+  );
+  const needsSync = devices.length === 0 || Date.now() - newestSyncedAt > SYNC_INTERVAL_MS;
+  if (needsSync) {
+    await syncDevices();
+    devices = await switchbotDeviceRepository.findByKind('AIRCON');
+  }
   return devices.map((d) => ({ id: d.id, name: d.deviceName }));
 }
 

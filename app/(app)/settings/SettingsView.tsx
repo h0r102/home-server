@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useWebAuthnSupported } from '@/app/lib/useWebAuthnSupported';
-import LogoutButton from '@/app/components/LogoutButton';
 import styles from './page.module.css';
 
 interface CredentialItem {
@@ -158,8 +157,6 @@ export default function SettingsView({ username, displayName, roleLabel }: Props
           <p className={styles.notice}>このブラウザはパスキーに対応していません。</p>
         )}
       </section>
-
-      <LogoutButton />
     </main>
   );
 }

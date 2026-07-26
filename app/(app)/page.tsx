@@ -4,15 +4,13 @@ import { can } from '@/server/domain/permission/permissionService';
 import * as airconService from '@/server/domain/aircon/airconService';
 import * as sensorService from '@/server/domain/sensor/sensorService';
 import * as listService from '@/server/domain/list/listService';
-import AirconSummaryCard from './components/AirconSummaryCard';
-import SensorSummaryCard from './components/SensorSummaryCard';
-import LogoutButton from './components/LogoutButton';
+import AirconSummaryCard from '@/app/components/AirconSummaryCard';
+import SensorSummaryCard from '@/app/components/SensorSummaryCard';
 import styles from './page.module.css';
 
 export default async function DashboardPage() {
   const user = await requireUser('/');
   const canOperateAircon = can(user, 'aircon.operate');
-  const canManageUsers = can(user, 'user.manage');
 
   let devices: Awaited<ReturnType<typeof airconService.listDevices>> = [];
   let states: Awaited<ReturnType<typeof airconService.getState>>[] = [];
@@ -48,16 +46,7 @@ export default async function DashboardPage() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>ホームポータル</h1>
-        <nav className={styles.nav}>
-          <Link href="/aircon">エアコン</Link>
-          <Link href="/lists">リスト</Link>
-          <Link href="/settings">設定</Link>
-          {canManageUsers && <Link href="/admin">管理</Link>}
-        </nav>
-        <LogoutButton />
-      </div>
+      <h1 className={styles.title}>ホームポータル</h1>
 
       <section>
         <h2 className={styles.sectionTitle}>エアコン</h2>

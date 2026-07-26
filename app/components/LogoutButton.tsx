@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Button from './ui/Button';
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -18,8 +19,8 @@ export default function LogoutButton() {
   }
 
   return (
-    <button type="button" onClick={handleClick} disabled={loading}>
+    <Button type="button" variant="secondary" onClick={handleClick} disabled={loading}>
       {loading ? 'ログアウト中…' : 'ログアウト'}
-    </button>
+    </Button>
   );
 }

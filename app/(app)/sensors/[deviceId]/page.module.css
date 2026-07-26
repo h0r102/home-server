@@ -35,9 +35,9 @@
 
 .warning {
   font-size: 0.875rem;
-  color: #e5484d;
-  border: 1px solid #e5484d;
-  border-radius: 8px;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
 }
 
@@ -48,8 +48,8 @@
 
 .tabs button {
   padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -57,16 +57,9 @@
 }
 
 .tabActive {
-  background: #171717;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
   border-color: transparent;
-}
-
-@media (prefers-color-scheme: dark) {
-  .tabActive {
-    background: #ededed;
-    color: #0a0a0a;
-  }
 }
 
 .tabs button:disabled {
@@ -75,6 +68,6 @@
 }
 
 .error {
-  color: #e5484d;
+  color: var(--color-danger);
   font-size: 0.875rem;
 }

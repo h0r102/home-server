@@ -92,7 +92,7 @@ export default function SensorHistoryView({
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
-      <LineChart points={history} />
+      <LineChart points={history} range={range} />
     </main>
   );
 }

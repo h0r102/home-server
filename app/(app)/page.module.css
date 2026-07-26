@@ -6,24 +6,6 @@
   gap: 20px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.nav {
-  display: flex;
-  gap: 12px;
-  font-size: 0.875rem;
-}
-
-.nav a {
-  text-decoration: underline;
-}
-
 .title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -42,12 +24,16 @@
 }
 
 .error {
-  color: #e5484d;
+  color: var(--color-danger);
   font-size: 0.875rem;
 }
 
 .listLink {
   font-size: 0.875rem;
-  text-decoration: underline;
+  color: var(--color-accent);
   display: block;
+}
+
+.listLink:hover {
+  text-decoration: underline;
 }
