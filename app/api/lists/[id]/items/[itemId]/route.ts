@@ -7,7 +7,12 @@ export const dynamic = 'force-dynamic';
 
 type RouteCtx = { params: Promise<{ id: string; itemId: string }> };
 
-const editSchema = z.object({ title: z.string().min(1).optional(), note: z.string().optional() });
+const editSchema = z.object({
+  title: z.string().min(1).optional(),
+  note: z.string().optional(),
+  url: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
 
 export const PATCH = withAuth<RouteCtx>(async (request, auth, ctx) => {
   const { id, itemId } = await ctx.params;

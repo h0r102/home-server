@@ -8,10 +8,34 @@ interface ItemProp {
   id: string;
   title: string;
   note: string | null;
+  tags: string[];
+  url: string | null;
   completed: boolean;
   sortOrder: number;
   createdBy: { id: string; displayName: string };
   completedBy: { id: string; displayName: string } | null;
+}
+
+interface EditDraft {
+  title: string;
+  tags: string;
+  url: string;
+  note: string;
+}
+
+function parseTagsInput(value: string): string[] {
+  return value
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+}
+
+function urlDisplayLabel(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
 }
 
 interface ShareProp {
@@ -42,6 +66,12 @@ export default function ListDetailView({
   const [items, setItems] = useState(initialItems);
   const [shares, setShares] = useState(initialShares);
   const [newItemTitle, setNewItemTitle] = useState('');
+  const [showAddDetails, setShowAddDetails] = useState(false);
+  const [newItemTags, setNewItemTags] = useState('');
+  const [newItemUrl, setNewItemUrl] = useState('');
+  const [newItemNote, setNewItemNote] = useState('');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lookupUsers, setLookupUsers] = useState<{ id: string; displayName: string }[]>([]);
@@ -112,7 +142,12 @@ export default function ListDetailView({
       const response = await fetch(`/api/lists/${listId}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newItemTitle }),
+        body: JSON.stringify({
+          title: newItemTitle,
+          tags: parseTagsInput(newItemTags),
+          url: newItemUrl,
+          note: newItemNote,
+        }),
       });
       const body = await response.json();
       if (!response.ok) {
@@ -121,6 +156,59 @@ export default function ListDetailView({
       }
       setItems((prev) => [...prev, body]);
       setNewItemTitle('');
+      setNewItemTags('');
+      setNewItemUrl('');
+      setNewItemNote('');
+      setShowAddDetails(false);
+    } catch {
+      setError('通信エラーが発生しました');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleStartEdit(item: ItemProp) {
+    setEditingItemId(item.id);
+    setEditDraft({
+      title: item.title,
+      tags: item.tags.join(', '),
+      url: item.url ?? '',
+      note: item.note ?? '',
+    });
+  }
+
+  function handleCancelEdit() {
+    setEditingItemId(null);
+    setEditDraft(null);
+  }
+
+  async function handleSaveEdit(itemId: string) {
+    if (!editDraft) return;
+    if (!editDraft.title.trim()) {
+      setError('項目名を入力してください');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/lists/${listId}/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editDraft.title,
+          tags: parseTagsInput(editDraft.tags),
+          url: editDraft.url,
+          note: editDraft.note,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        setError(body?.error?.message ?? '更新に失敗しました');
+        return;
+      }
+      setItems((prev) => prev.map((i) => (i.id === itemId ? body : i)));
+      setEditingItemId(null);
+      setEditDraft(null);
     } catch {
       setError('通信エラーが発生しました');
     } finally {
@@ -265,43 +353,134 @@ export default function ListDetailView({
 
       <div className={styles.itemList}>
         {sortedItems.length === 0 && <p>項目がありません。</p>}
-        {sortedItems.map((item) => (
-          <div key={item.id} className={`${styles.item} ${item.completed ? styles.itemChecked : ''}`}>
-            <input
-              type="checkbox"
-              checked={item.completed}
-              onChange={() => handleToggleItem(item.id)}
-              disabled={busy || !canEditItems}
-            />
-            <div className={styles.itemBody}>
-              <div className={styles.itemTitle}>{item.title}</div>
-              {item.note && <div className={styles.itemNote}>{item.note}</div>}
+        {sortedItems.map((item) => {
+          if (editingItemId === item.id && editDraft) {
+            return (
+              <div key={item.id} className={styles.editForm}>
+                <input
+                  placeholder="項目名"
+                  value={editDraft.title}
+                  onChange={(e) => setEditDraft({ ...editDraft, title: e.target.value })}
+                  disabled={busy}
+                />
+                <input
+                  placeholder="タグ（カンマ区切り）"
+                  value={editDraft.tags}
+                  onChange={(e) => setEditDraft({ ...editDraft, tags: e.target.value })}
+                  disabled={busy}
+                />
+                <input
+                  placeholder="URL"
+                  value={editDraft.url}
+                  onChange={(e) => setEditDraft({ ...editDraft, url: e.target.value })}
+                  disabled={busy}
+                />
+                <textarea
+                  placeholder="メモ"
+                  value={editDraft.note}
+                  onChange={(e) => setEditDraft({ ...editDraft, note: e.target.value })}
+                  disabled={busy}
+                />
+                <div className={styles.editFormButtons}>
+                  <button type="button" onClick={() => handleSaveEdit(item.id)} disabled={busy}>
+                    保存
+                  </button>
+                  <button type="button" className={styles.iconButton} onClick={handleCancelEdit} disabled={busy}>
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={item.id} className={`${styles.item} ${item.completed ? styles.itemChecked : ''}`}>
+              <input
+                type="checkbox"
+                checked={item.completed}
+                onChange={() => handleToggleItem(item.id)}
+                disabled={busy || !canEditItems}
+              />
+              <div className={styles.itemBody}>
+                <div className={styles.itemTitle}>{item.title}</div>
+                {item.tags.length > 0 && (
+                  <div className={styles.tagList}>
+                    {item.tags.map((tag) => (
+                      <span key={tag} className={styles.tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {item.url && (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className={styles.itemUrl}>
+                    🔗 {urlDisplayLabel(item.url)}
+                  </a>
+                )}
+                {item.note && <div className={styles.itemNote}>{item.note}</div>}
+              </div>
+              {canEditItems && (
+                <div className={styles.itemButtons}>
+                  <button type="button" className={styles.iconButton} onClick={() => handleStartEdit(item)} disabled={busy}>
+                    編集
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.itemDeleteButton}
+                    onClick={() => handleDeleteItem(item.id)}
+                    disabled={busy}
+                  >
+                    削除
+                  </button>
+                </div>
+              )}
             </div>
-            {canEditItems && (
-              <button
-                type="button"
-                className={styles.itemDeleteButton}
-                onClick={() => handleDeleteItem(item.id)}
-                disabled={busy}
-              >
-                削除
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {canEditItems && (
         <form className={styles.addItemForm} onSubmit={handleAddItem}>
-          <input
-            placeholder="項目を追加"
-            value={newItemTitle}
-            onChange={(e) => setNewItemTitle(e.target.value)}
-            disabled={busy}
-          />
-          <button type="submit" disabled={busy}>
-            追加
+          <div className={styles.addItemRow}>
+            <input
+              placeholder="項目を追加"
+              value={newItemTitle}
+              onChange={(e) => setNewItemTitle(e.target.value)}
+              disabled={busy}
+            />
+            <button type="submit" disabled={busy}>
+              追加
+            </button>
+          </div>
+          <button
+            type="button"
+            className={styles.detailsToggle}
+            onClick={() => setShowAddDetails((prev) => !prev)}
+          >
+            {showAddDetails ? '詳細を閉じる' : '＋ 詳細を追加'}
           </button>
+          {showAddDetails && (
+            <div className={styles.addItemDetails}>
+              <input
+                placeholder="タグ（カンマ区切り）"
+                value={newItemTags}
+                onChange={(e) => setNewItemTags(e.target.value)}
+                disabled={busy}
+              />
+              <input
+                placeholder="URL"
+                value={newItemUrl}
+                onChange={(e) => setNewItemUrl(e.target.value)}
+                disabled={busy}
+              />
+              <textarea
+                placeholder="メモ"
+                value={newItemNote}
+                onChange={(e) => setNewItemNote(e.target.value)}
+                disabled={busy}
+              />
+            </div>
+          )}
         </form>
       )}
 

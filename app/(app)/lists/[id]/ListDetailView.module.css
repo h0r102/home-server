@@ -85,6 +85,39 @@
   opacity: 0.6;
 }
 
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-subtle);
+  color: var(--color-accent);
+}
+
+.itemUrl {
+  display: inline-block;
+  font-size: 0.8125rem;
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+
+.itemUrl:hover {
+  text-decoration: underline;
+}
+
+.itemButtons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .itemDeleteButton {
   font-size: 0.75rem;
   color: var(--color-danger);
@@ -95,10 +128,16 @@
 
 .addItemForm {
   display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.addItemForm input {
+.addItemRow {
+  display: flex;
+  gap: 8px;
+}
+
+.addItemRow input {
   flex: 1;
   font-size: 1rem;
   padding: 10px 12px;
@@ -108,10 +147,66 @@
   color: inherit;
 }
 
-.addItemForm button {
+.addItemRow button {
   font-size: 0.9375rem;
   font-weight: 600;
   padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  cursor: pointer;
+}
+
+.detailsToggle {
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.detailsToggle:hover {
+  color: var(--color-accent);
+}
+
+.addItemDetails,
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editForm {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.addItemDetails input,
+.addItemDetails textarea,
+.editForm input,
+.editForm textarea {
+  font-size: 0.9375rem;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.editFormButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.editFormButtons button:first-child {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 8px 16px;
   border-radius: var(--radius-sm);
   border: none;
   background: var(--color-accent);

@@ -27,6 +27,8 @@ export interface ListItemDto {
   id: string;
   title: string;
   note: string | null;
+  tags: string[];
+  url: string | null;
   completed: boolean;
   sortOrder: number;
   createdBy: { id: string; displayName: string };
@@ -67,11 +69,41 @@ function assertViewAccessOrNotFound(user: AuthUser, ctx: ListResourceContext): v
   }
 }
 
+function parseTags(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function serializeTags(tags: string[] | undefined): string | null {
+  if (!tags || tags.length === 0) return null;
+  return JSON.stringify(tags);
+}
+
+function normalizeUrl(raw: string | undefined): string | null {
+  if (raw === undefined) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    return new URL(withScheme).toString();
+  } catch {
+    throw new ValidationError('URLの形式が正しくありません');
+  }
+}
+
 function toItemDto(item: ListItemWithRelations): ListItemDto {
   return {
     id: item.id,
     title: item.title,
     note: item.note,
+    tags: parseTags(item.tags),
+    url: item.url,
     completed: item.completed,
     sortOrder: item.sortOrder,
     createdBy: { id: item.createdBy.id, displayName: item.createdBy.displayName },
@@ -190,7 +222,7 @@ export async function getItems(user: AuthUser, listId: string): Promise<ListItem
 export async function addItem(
   user: AuthUser,
   listId: string,
-  input: { title: string; note?: string }
+  input: { title: string; note?: string; url?: string; tags?: string[] }
 ): Promise<ListItemDto> {
   const list = await getListOrThrow(listId);
   const ctx = toResourceContext(list);
@@ -204,6 +236,8 @@ export async function addItem(
   const item = await listItemRepository.create(listId, {
     title,
     note: input.note?.trim() || undefined,
+    tags: serializeTags(input.tags),
+    url: normalizeUrl(input.url),
     createdById: user.id,
     sortOrder,
   });
@@ -229,7 +263,7 @@ export async function editItem(
   user: AuthUser,
   listId: string,
   itemId: string,
-  input: { title?: string; note?: string }
+  input: { title?: string; note?: string; url?: string; tags?: string[] }
 ): Promise<ListItemDto> {
   const list = await getListOrThrow(listId);
   const ctx = toResourceContext(list);
@@ -237,7 +271,7 @@ export async function editItem(
   assertCan(user, 'list.item.edit', { list: ctx });
   await getOwnItemOrThrow(listId, itemId);
 
-  const data: Partial<{ title: string; note: string | null }> = {};
+  const data: Partial<{ title: string; note: string | null; tags: string | null; url: string | null }> = {};
   if (input.title !== undefined) {
     const title = input.title.trim();
     if (!title) throw new ValidationError('項目名を入力してください');
@@ -245,6 +279,12 @@ export async function editItem(
   }
   if (input.note !== undefined) {
     data.note = input.note.trim() || null;
+  }
+  if (input.tags !== undefined) {
+    data.tags = serializeTags(input.tags);
+  }
+  if (input.url !== undefined) {
+    data.url = normalizeUrl(input.url);
   }
 
   const updated = await listItemRepository.update(itemId, data);

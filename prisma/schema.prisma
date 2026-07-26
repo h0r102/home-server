@@ -181,6 +181,8 @@ model ListItem {
   list          List      @relation(fields: [listId], references: [id], onDelete: Cascade)
   title         String
   note          String?
+  tags          String? // JSON配列文字列 例: ["買い物","急ぎ"]
+  url           String?
   completed     Boolean   @default(false)
   completedAt   DateTime?
   completedById String?

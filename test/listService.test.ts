@@ -86,4 +86,71 @@ describe('listService — sharing and permission scenarios (D1.3 / D1.1)', () =>
 
     await expect(listService.reorderItems(owner, list.id, [item1.id])).rejects.toThrow();
   });
+
+  describe('item details — tags, url, note', () => {
+    it('creates an item with tags/url/note and returns them normalized', async () => {
+      const list = await listService.createList(owner, '詳細テスト');
+      const item = await listService.addItem(owner, list.id, {
+        title: '牛乳',
+        tags: ['買い物', '急ぎ'],
+        url: 'example.com/milk',
+        note: 'スーパーで買う',
+      });
+
+      expect(item.tags).toEqual(['買い物', '急ぎ']);
+      expect(item.url).toBe('https://example.com/milk');
+      expect(item.note).toBe('スーパーで買う');
+    });
+
+    it('creating an item without details defaults to empty tags and null url', async () => {
+      const list = await listService.createList(owner, '詳細なしテスト');
+      const item = await listService.addItem(owner, list.id, { title: 'パン' });
+
+      expect(item.tags).toEqual([]);
+      expect(item.url).toBeNull();
+      expect(item.note).toBeNull();
+    });
+
+    it('rejects an invalid url with ValidationError', async () => {
+      const list = await listService.createList(owner, '不正URLテスト');
+      await expect(
+        listService.addItem(owner, list.id, { title: '不正な項目', url: '   ' })
+      ).resolves.toMatchObject({ url: null });
+
+      await expect(
+        listService.addItem(owner, list.id, { title: '不正な項目2', url: 'http://' })
+      ).rejects.toThrow();
+    });
+
+    it('editItem can add tags/url/note to an already-created item', async () => {
+      const list = await listService.createList(owner, '後から編集テスト');
+      const item = await listService.addItem(owner, list.id, { title: '洗剤' });
+      expect(item.tags).toEqual([]);
+
+      const updated = await listService.editItem(owner, list.id, item.id, {
+        tags: ['日用品'],
+        url: 'https://example.com/detergent',
+        note: '香りは無香料',
+      });
+
+      expect(updated.tags).toEqual(['日用品']);
+      expect(updated.url).toBe('https://example.com/detergent');
+      expect(updated.note).toBe('香りは無香料');
+    });
+
+    it('editItem without a details field leaves it unchanged', async () => {
+      const list = await listService.createList(owner, '部分更新テスト');
+      const item = await listService.addItem(owner, list.id, {
+        title: 'タオル',
+        tags: ['お風呂'],
+        url: 'https://example.com/towel',
+      });
+
+      const updated = await listService.editItem(owner, list.id, item.id, { title: 'タオル(更新)' });
+
+      expect(updated.title).toBe('タオル(更新)');
+      expect(updated.tags).toEqual(['お風呂']);
+      expect(updated.url).toBe('https://example.com/towel');
+    });
+  });
 });

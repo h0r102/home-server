@@ -34,8 +34,18 @@ test.describe('ゴールデンパス: ログイン → エアコン操作 → �
     await expect(page).toHaveURL(/\/lists\/.+/);
 
     await page.getByPlaceholder('項目を追加').fill('牛乳');
-    await page.getByRole('button', { name: '追加' }).click();
+    await page.getByRole('button', { name: '追加', exact: true }).click();
     await expect(page.getByText('牛乳')).toBeVisible();
+
+    // 3.5. 項目の詳細(タグ・URL・メモ)を後から編集できることを確認
+    await page.getByRole('button', { name: '編集' }).click();
+    await page.getByPlaceholder('タグ（カンマ区切り）').fill('日用品, 急ぎ');
+    await page.getByPlaceholder('URL').fill('example.com/milk');
+    await page.getByPlaceholder('メモ').fill('特売の時に買う');
+    await page.getByRole('button', { name: '保存' }).click();
+    await expect(page.getByText('日用品')).toBeVisible();
+    await expect(page.getByRole('link', { name: /example\.com/ })).toBeVisible();
+    await expect(page.getByText('特売の時に買う')).toBeVisible();
 
     const checkbox = page.locator('input[type="checkbox"]');
     await checkbox.click();

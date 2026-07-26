@@ -11,14 +11,21 @@ const WITH_RELATIONS = { createdBy: true, completedBy: true } as const;
 export const listItemRepository = {
   create(
     listId: string,
-    data: { title: string; note?: string; createdById: string; sortOrder: number }
+    data: {
+      title: string;
+      note?: string;
+      tags?: string | null;
+      url?: string | null;
+      createdById: string;
+      sortOrder: number;
+    }
   ): Promise<ListItemWithRelations> {
     return prisma.listItem.create({ data: { listId, ...data }, include: WITH_RELATIONS });
   },
 
   update(
     id: string,
-    data: Partial<{ title: string; note: string | null }>
+    data: Partial<{ title: string; note: string | null; tags: string | null; url: string | null }>
   ): Promise<ListItemWithRelations> {
     return prisma.listItem.update({ where: { id }, data, include: WITH_RELATIONS });
   },
